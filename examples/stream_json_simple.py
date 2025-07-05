@@ -22,7 +22,8 @@ async def stream_with_json_output():
     # Configure client
     config = ClaudeConfig(
         default_timeout=30.0,
-        debug_mode=False,  # Set to True to see more details
+        debug_mode=True,  # Show full claude commands
+        verbose_logging=True,  # Extra verbose output
     )
     
     async with ClaudeClient(config=config) as client:
@@ -30,13 +31,25 @@ async def stream_with_json_output():
         print("\n1. Simple Query with JSON Output:")
         print("-" * 40)
         
+        # Show what command will be built
+        from claude_sdk.core.subprocess_wrapper import CommandBuilder
+        
+        json_builder = CommandBuilder()
+        json_command = (json_builder
+                       .add_prompt("What is 2+2?")
+                       .set_output_format("json")
+                       .build())
+        
+        print(f"\nJSON output command that will be executed:")
+        print(f"  {' '.join(json_command)}")
+        
         try:
             response = await client.query(
                 "What is 2+2?",
                 output_format=OutputFormat.JSON
             )
             
-            print("Raw JSON response:")
+            print("\nRaw JSON response:")
             print(response.content[:500])
             
             # Try to parse the JSON
@@ -53,9 +66,18 @@ async def stream_with_json_output():
             if e.stderr:
                 print(f"Error output: {e.stderr}")
         
-        # Example 2: Streaming response
+        # Example 2: Streaming response with command details
         print("\n\n2. Streaming Response (showing chunks):")
         print("-" * 40)
+        
+        # Show what command will be built for streaming
+        stream_builder = CommandBuilder()
+        stream_command = (stream_builder
+                         .add_prompt("Tell me a very short joke")
+                         .build())
+        
+        print(f"\nStreaming command that will be executed:")
+        print(f"  {' '.join(stream_command)}")
         
         chunks_collected = []
         chunk_count = 0
@@ -84,7 +106,16 @@ async def stream_with_json_output():
                   .set_output_format("json")
                   .build())
         
-        print(f"Command: {' '.join(command)}")
+        # Show the full command in a more readable format
+        print(f"\nFull Claude CLI command:")
+        print(f"  {' '.join(command)}")
+        print(f"\nCommand breakdown:")
+        print(f"  Executable: {command[0]}")
+        for i in range(1, len(command), 2):
+            if i + 1 < len(command):
+                print(f"  {command[i]}: {command[i+1]}")
+            else:
+                print(f"  {command[i]}")
         print("\nRaw streaming output:")
         
         try:
@@ -155,9 +186,10 @@ async def demonstrate_output_formats():
         print(f"  - {format_type.value}: {format_type.name}")
     
     print("\nCommand line equivalents:")
-    print("  claude -p 'prompt'                    # Default text output")
-    print("  claude -p 'prompt' --output-format json       # JSON output")
+    print("  claude -p 'prompt'                              # Default text output")
+    print("  claude -p 'prompt' --output-format json         # JSON output")
     print("  claude -p 'prompt' --output-format stream-json  # Streaming JSON")
+    print("\nNote: The SDK automatically builds these commands for you!")
 
 
 async def main():
@@ -170,6 +202,7 @@ async def main():
         print("\n\n✅ Examples completed!")
         print("\nNote: Some examples may fail if Claude CLI is not properly configured.")
         print("Make sure you have Claude CLI installed: npm install -g @anthropic-ai/claude-code")
+        print("\nTIP: The debug output above shows the exact claude commands being executed.")
         
     except Exception as e:
         print(f"\n❌ Error running examples: {type(e).__name__}: {e}")

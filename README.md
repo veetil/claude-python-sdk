@@ -187,6 +187,36 @@ async def concurrent_example():
 asyncio.run(concurrent_example())
 ```
 
+## Examples
+
+The `examples/` directory contains comprehensive examples demonstrating various SDK features:
+
+### Basic Examples
+- `basic_usage.py` - Simple query and response handling
+- `session_management.py` - Multi-turn conversations with session state
+- `workspace_operations.py` - File operations with workspace isolation
+- `error_handling.py` - Comprehensive error handling patterns
+
+### Advanced Examples
+- `parallel_haikus.py` - Parallel execution with 5 concurrent tasks
+- `advanced_features.py` - Retry mechanisms, timeouts, and configuration
+- `stream_json_simple.py` - JSON output formats with debug commands
+- `stream_json_output.py` - Advanced streaming JSON analysis
+- `show_claude_commands.py` - **See all Claude CLI commands the SDK generates**
+
+### Running Examples
+
+```bash
+# Show all Claude CLI commands
+python examples/show_claude_commands.py
+
+# Run parallel haiku generation
+python examples/parallel_haikus.py
+
+# See streaming JSON with debug output
+python examples/stream_json_simple.py
+```
+
 ## API Reference
 
 ### ClaudeClient
