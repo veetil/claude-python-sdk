@@ -108,7 +108,10 @@ asyncio.run(workspace_example())
 ### Environment Variables
 
 ```bash
-export CLAUDE_API_KEY="your-api-key"
+# NOTE: The SDK automatically removes ANTHROPIC_API_KEY from the environment
+# when calling Claude CLI to avoid "credit balance" issues
+unset ANTHROPIC_API_KEY  # Or set to empty string
+
 export CLAUDE_CLI_PATH="/path/to/claude"
 export CLAUDE_LOG_LEVEL="INFO"
 export CLAUDE_DEBUG="true"

@@ -281,6 +281,11 @@ class ClaudeConfig(BaseModel):
         env_vars = os.environ.copy()
         env_vars.update(self.env_vars)
         
+        # Handle ANTHROPIC_API_KEY - unset or empty to avoid credit balance issues
+        if 'ANTHROPIC_API_KEY' in env_vars:
+            # Remove it to avoid credit balance issues with Claude CLI
+            del env_vars['ANTHROPIC_API_KEY']
+        
         # Add configuration-specific environment variables
         if self.api_key:
             env_vars['CLAUDE_API_KEY'] = self.api_key
