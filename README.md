@@ -329,6 +329,14 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 See [CHANGELOG.md](CHANGELOG.md) for a list of changes and version history.
 
+## Documentation
+
+- [Quick Start Guide](QUICKSTART.md) - Get started quickly
+- [API Reference](API_REFERENCE.md) - Concise API reference card
+- [SDK Signature](SDK_SIGNATURE.md) - Complete API signature documentation
+- [Examples](examples/) - Comprehensive example scripts
+- [Changelog](CHANGELOG.md) - Version history
+
 ## Support
 
 - Documentation: [https://claude-python-sdk.readthedocs.io](https://claude-python-sdk.readthedocs.io)
