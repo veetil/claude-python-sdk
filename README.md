@@ -112,6 +112,9 @@ asyncio.run(workspace_example())
 # when calling Claude CLI to avoid "credit balance" issues
 unset ANTHROPIC_API_KEY  # Or set to empty string
 
+# NOTE: The SDK adds --dangerously-skip-permissions by default
+# To disable this, use safe_mode=True in ClaudeConfig
+
 export CLAUDE_CLI_PATH="/path/to/claude"
 export CLAUDE_LOG_LEVEL="INFO"
 export CLAUDE_DEBUG="true"
@@ -312,6 +315,8 @@ black --check src/claude_sdk
 - Sensitive data is filtered from logs
 - Input validation prevents path traversal attacks
 - Environment variables are handled securely
+- **Default behavior**: `--dangerously-skip-permissions` is added automatically
+  - To run in safe mode: `ClaudeConfig(safe_mode=True)`
 
 ## Performance
 

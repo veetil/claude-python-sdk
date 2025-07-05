@@ -349,8 +349,9 @@ class AsyncSubprocessWrapper:
 class CommandBuilder:
     """Builder for constructing Claude CLI commands."""
     
-    def __init__(self, base_command: str = "claude"):
+    def __init__(self, base_command: str = "claude", config: Optional[ClaudeConfig] = None):
         self.base_command = base_command
+        self.config = config or get_config()
         self._args: List[str] = []
         self._options: Dict[str, str] = {}
         self._flags: List[str] = []
@@ -385,9 +386,34 @@ class CommandBuilder:
         self._options[key] = value
         return self
     
+    def add_files(self, file_paths: List[str]) -> "CommandBuilder":
+        """Add multiple files to the command."""
+        for file_path in file_paths:
+            self.add_file(file_path)
+        return self
+    
+    def set_workspace_id(self, workspace_id: str) -> "CommandBuilder":
+        """Set the workspace ID."""
+        self._options["workspace-id"] = workspace_id
+        return self
+    
+    def set_timeout(self, timeout: float) -> "CommandBuilder":
+        """Set the timeout."""
+        self._options["timeout"] = str(timeout)
+        return self
+    
+    def add_raw_args(self, args: List[str]) -> "CommandBuilder":
+        """Add raw arguments to the command."""
+        self._args.extend(args)
+        return self
+    
     def build(self) -> List[str]:
         """Build the final command."""
         cmd = [self.base_command]
+        
+        # Add --dangerously-skip-permissions by default unless in safe mode
+        if not self.config.safe_mode:
+            cmd.append("--dangerously-skip-permissions")
         
         # Add options
         for key, value in self._options.items():

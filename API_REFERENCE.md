@@ -63,6 +63,9 @@ config = ClaudeConfig(
     # Workspace settings
     workspace_cleanup_on_exit=True, # Auto-cleanup
     
+    # Security settings
+    safe_mode=False,                # True disables --dangerously-skip-permissions
+    
     # Performance
     stream_buffer_size=8192,        # Stream buffer size
     max_concurrent_sessions=5,      # Max concurrent sessions
@@ -140,7 +143,9 @@ responses = await asyncio.gather(*tasks)
 | `CLAUDE_DEBUG` | Debug mode | `false` |
 | `CLAUDE_MAX_RETRIES` | Max retries | `3` |
 
-**Note**: `ANTHROPIC_API_KEY` is automatically removed to avoid credit balance issues.
+**Note**: 
+- `ANTHROPIC_API_KEY` is automatically removed to avoid credit balance issues
+- `--dangerously-skip-permissions` is added by default (disable with `safe_mode=True`)
 
 ## Common Patterns
 
@@ -156,6 +161,11 @@ async with ClaudeClient(config) as client:
 ```python
 # See all Claude CLI commands
 config = ClaudeConfig(debug_mode=True, verbose_logging=True)
+async with ClaudeClient(config) as client:
+    await client.query("Hello")  # Shows: claude --dangerously-skip-permissions -p "Hello"
+
+# Safe mode (no dangerous flag)
+config = ClaudeConfig(safe_mode=True)
 async with ClaudeClient(config) as client:
     await client.query("Hello")  # Shows: claude -p "Hello"
 ```

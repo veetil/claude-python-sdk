@@ -110,6 +110,12 @@ class ClaudeConfig(BaseModel):
         json_schema_extra={"env": "CLAUDE_ENABLE_WORKSPACE_ISOLATION"},
     )
     
+    safe_mode: bool = Field(
+        False,
+        description="Enable safe mode (disables --dangerously-skip-permissions)",
+        json_schema_extra={"env": "CLAUDE_SAFE_MODE"},
+    )
+    
     allowed_commands: List[str] = Field(
         default_factory=list,
         description="List of allowed commands (empty = all allowed)",

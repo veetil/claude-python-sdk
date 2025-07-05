@@ -21,6 +21,19 @@ pip install -e ".[dev]"
   unset ANTHROPIC_API_KEY  # Or: export ANTHROPIC_API_KEY=""
   ```
 
+## Default Behavior
+
+The SDK adds `--dangerously-skip-permissions` to all Claude CLI commands by default. To disable this:
+
+```python
+from claude_sdk import ClaudeClient, ClaudeConfig
+
+# Safe mode - no dangerous flags
+config = ClaudeConfig(safe_mode=True)
+async with ClaudeClient(config) as client:
+    response = await client.query("Hello!")
+```
+
 ## Basic Usage
 
 ```python

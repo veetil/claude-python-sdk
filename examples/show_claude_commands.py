@@ -20,11 +20,12 @@ async def show_all_command_variations():
     # Create a command builder to show examples
     builder = CommandBuilder()
     
-    # 1. Basic prompt
-    print("1. Basic text prompt:")
+    # 1. Basic prompt (with default --dangerously-skip-permissions)
+    print("1. Basic text prompt (default config):")
     print("-" * 40)
     cmd = builder.add_prompt("Hello, Claude!").build()
     print(f"Command: {' '.join(cmd)}")
+    print(f"Note: --dangerously-skip-permissions is added by default")
     print()
     
     # 2. JSON output
@@ -107,6 +108,17 @@ async def show_all_command_variations():
     builder = CommandBuilder()
     cmd = builder.add_raw_args(["--help"]).build()
     print(f"Command: {' '.join(cmd)}")
+    print()
+    
+    # 11. Safe mode (no --dangerously-skip-permissions)
+    print("11. Safe mode (disables dangerous flag):")
+    print("-" * 40)
+    from claude_sdk import ClaudeConfig
+    safe_config = ClaudeConfig(safe_mode=True)
+    builder = CommandBuilder(config=safe_config)
+    cmd = builder.add_prompt("Safe query").build()
+    print(f"Command: {' '.join(cmd)}")
+    print(f"Note: No --dangerously-skip-permissions when safe_mode=True")
     print()
 
 

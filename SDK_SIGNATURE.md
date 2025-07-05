@@ -111,6 +111,7 @@ class ClaudeConfig(BaseModel):
     
     # Security Configuration
     enable_workspace_isolation: bool = True
+    safe_mode: bool = False  # When True, disables --dangerously-skip-permissions
     allowed_commands: List[str] = []
     
     # Debug Configuration
@@ -253,7 +254,7 @@ class WorkspaceContext:
 
 ```python
 class CommandBuilder:
-    def __init__(self, base_command: str = "claude")
+    def __init__(self, base_command: str = "claude", config: Optional[ClaudeConfig] = None)
     
     def add_prompt(self, prompt: str) -> CommandBuilder
     def set_session_id(self, session_id: str) -> CommandBuilder
@@ -263,7 +264,7 @@ class CommandBuilder:
     def add_files(self, file_paths: List[str]) -> CommandBuilder
     def set_timeout(self, timeout: float) -> CommandBuilder
     def add_raw_args(self, args: List[str]) -> CommandBuilder
-    def build(self) -> List[str]
+    def build(self) -> List[str]  # Adds --dangerously-skip-permissions by default unless safe_mode=True
 ```
 
 ## Convenience Functions

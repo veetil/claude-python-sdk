@@ -93,7 +93,7 @@ class ClaudeClient:
         logger.debug(f"Executing query: {prompt[:100]}...")
         
         # Build command
-        command_builder = CommandBuilder()
+        command_builder = CommandBuilder(config=self.config)
         command_builder.add_prompt(prompt)
         
         if session_id:
@@ -163,7 +163,7 @@ class ClaudeClient:
         logger.debug(f"Streaming query: {prompt[:100]}...")
         
         # Build command
-        command_builder = CommandBuilder()
+        command_builder = CommandBuilder(config=self.config)
         command_builder.add_prompt(prompt)
         
         if session_id:
@@ -289,7 +289,7 @@ class ClaudeClient:
     
     def command_builder(self, base_command: str = "claude") -> CommandBuilder:
         """Create a new command builder."""
-        return CommandBuilder(base_command)
+        return CommandBuilder(base_command, config=self.config)
     
     async def _execute_command(
         self,
