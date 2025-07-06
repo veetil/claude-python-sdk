@@ -162,3 +162,35 @@ tmp/
 claude_workspaces/
 *.claude_session
 .claude_cache/
+
+# Logs and generated files
+logs/
+*.haiku
+*haiku*.txt
+*haiku*.md
+joke_*.txt
+moon_*.txt
+test_*.log
+
+# Generated code files from examples
+fibonacci.py
+sorting.py
+merging.py
+string_reverse.py
+merge_sorted_lists.py
+leetcode_*.py
+leetcode_*.rs
+leetcode_*.ts
+*.rs
+*.ts
+two_sum.py
+valid_parentheses.py
+binary_tree_*.ts
+maximum_subarray.rs
+reverse_linked_list.rs
+
+# Generated app directories
+backend/
+frontend/
+trivia-quiz-app/
+styles/
