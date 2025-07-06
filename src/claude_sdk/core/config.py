@@ -8,10 +8,14 @@ and programmatic settings.
 
 import os
 import json
+import logging
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 from pydantic import BaseModel, Field, validator
 from .types import LogLevel, OutputFormat, EnvDict, PathLike
+
+
+logger = logging.getLogger(__name__)
 
 
 class ClaudeConfig(BaseModel):
@@ -119,6 +123,19 @@ class ClaudeConfig(BaseModel):
     allowed_commands: List[str] = Field(
         default_factory=list,
         description="List of allowed commands (empty = all allowed)",
+    )
+    
+    # Prefix Prompt Configuration
+    prefix_prompt_file: Optional[str] = Field(
+        "prefix-prompt.md",
+        description="Path to prefix prompt file (prepended to all prompts)",
+        json_schema_extra={"env": "CLAUDE_PREFIX_PROMPT_FILE"},
+    )
+    
+    enable_prefix_prompt: bool = Field(
+        True,
+        description="Enable automatic prefix prompt prepending",
+        json_schema_extra={"env": "CLAUDE_ENABLE_PREFIX_PROMPT"},
     )
     
     # Debug Configuration
@@ -334,6 +351,35 @@ class ClaudeConfig(BaseModel):
         """Check if Claude CLI is available."""
         import shutil
         return shutil.which(self.cli_path) is not None
+    
+    def get_prefix_prompt(self) -> str:
+        """Get the prefix prompt content if enabled."""
+        if not self.enable_prefix_prompt or not self.prefix_prompt_file:
+            return ""
+        
+        try:
+            prefix_path = Path(self.prefix_prompt_file)
+            if prefix_path.exists():
+                with open(prefix_path, 'r', encoding='utf-8') as f:
+                    content = f.read().strip()
+                    logger.debug(f"Loaded prefix prompt from {prefix_path} ({len(content)} chars)")
+                    return content
+            else:
+                logger.debug(f"Prefix prompt file not found: {prefix_path}")
+                return ""
+        except Exception as e:
+            logger.warning(f"Failed to load prefix prompt from {self.prefix_prompt_file}: {e}")
+            return ""
+    
+    def apply_prefix_prompt(self, user_prompt: str) -> str:
+        """Apply prefix prompt to user prompt."""
+        prefix = self.get_prefix_prompt()
+        if not prefix:
+            return user_prompt
+        
+        combined_prompt = f"{prefix}\n\n{user_prompt}"
+        logger.debug(f"Applied prefix prompt: {len(prefix)} + {len(user_prompt)} = {len(combined_prompt)} chars")
+        return combined_prompt
 
 
 # Global configuration instance

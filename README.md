@@ -115,6 +115,9 @@ unset ANTHROPIC_API_KEY  # Or set to empty string
 # NOTE: The SDK adds --dangerously-skip-permissions by default
 # To disable this, use safe_mode=True in ClaudeConfig
 
+# NOTE: The SDK automatically prepends prefix-prompt.md to all prompts
+# To disable this, use enable_prefix_prompt=False in ClaudeConfig
+
 export CLAUDE_CLI_PATH="/path/to/claude"
 export CLAUDE_LOG_LEVEL="INFO"
 export CLAUDE_DEBUG="true"
@@ -206,6 +209,8 @@ The `examples/` directory contains comprehensive examples demonstrating various 
 - `stream_json_simple.py` - JSON output formats with debug commands
 - `stream_json_output.py` - Advanced streaming JSON analysis
 - `show_claude_commands.py` - **See all Claude CLI commands the SDK generates**
+- `prefix_prompt_demo.py` - Demonstrates automatic prefix prompt prepending
+- `safe_mode.py` - Shows how to disable dangerous permissions flag
 
 ### Running Examples
 
@@ -317,6 +322,9 @@ black --check src/claude_sdk
 - Environment variables are handled securely
 - **Default behavior**: `--dangerously-skip-permissions` is added automatically
   - To run in safe mode: `ClaudeConfig(safe_mode=True)`
+- **Prefix Prompt**: Automatically prepends `prefix-prompt.md` content to all prompts
+  - To disable: `ClaudeConfig(enable_prefix_prompt=False)`
+  - Custom file: `ClaudeConfig(prefix_prompt_file="custom-prefix.md")`
 
 ## Performance
 

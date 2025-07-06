@@ -114,6 +114,10 @@ class ClaudeConfig(BaseModel):
     safe_mode: bool = False  # When True, disables --dangerously-skip-permissions
     allowed_commands: List[str] = []
     
+    # Prefix Prompt Configuration
+    prefix_prompt_file: Optional[str] = "prefix-prompt.md"
+    enable_prefix_prompt: bool = True
+    
     # Debug Configuration
     debug_mode: bool = False
     verbose_logging: bool = False
@@ -141,6 +145,8 @@ def validate_config(self) -> List[str]
 def to_dict(self) -> Dict[str, Any]
 def to_json(self) -> str
 def save_to_file(self, config_path: PathLike) -> None
+def get_prefix_prompt(self) -> str
+def apply_prefix_prompt(self, user_prompt: str) -> str
 ```
 
 ## Types and Enums

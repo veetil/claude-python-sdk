@@ -92,9 +92,12 @@ class ClaudeClient:
         
         logger.debug(f"Executing query: {prompt[:100]}...")
         
+        # Apply prefix prompt if enabled
+        full_prompt = self.config.apply_prefix_prompt(prompt)
+        
         # Build command
         command_builder = CommandBuilder(config=self.config)
-        command_builder.add_prompt(prompt)
+        command_builder.add_prompt(full_prompt)
         
         if session_id:
             command_builder.set_session_id(session_id)
@@ -162,9 +165,12 @@ class ClaudeClient:
         
         logger.debug(f"Streaming query: {prompt[:100]}...")
         
+        # Apply prefix prompt if enabled
+        full_prompt = self.config.apply_prefix_prompt(prompt)
+        
         # Build command
         command_builder = CommandBuilder(config=self.config)
-        command_builder.add_prompt(prompt)
+        command_builder.add_prompt(full_prompt)
         
         if session_id:
             command_builder.set_session_id(session_id)

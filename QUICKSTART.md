@@ -23,6 +23,7 @@ pip install -e ".[dev]"
 
 ## Default Behavior
 
+### 1. Dangerous Permissions Flag
 The SDK adds `--dangerously-skip-permissions` to all Claude CLI commands by default. To disable this:
 
 ```python
@@ -32,6 +33,17 @@ from claude_sdk import ClaudeClient, ClaudeConfig
 config = ClaudeConfig(safe_mode=True)
 async with ClaudeClient(config) as client:
     response = await client.query("Hello!")
+```
+
+### 2. Prefix Prompt
+The SDK automatically prepends content from `prefix-prompt.md` to all prompts. To disable or customize:
+
+```python
+# Disable prefix prompt
+config = ClaudeConfig(enable_prefix_prompt=False)
+
+# Use custom prefix file
+config = ClaudeConfig(prefix_prompt_file="my-prefix.md")
 ```
 
 ## Basic Usage
