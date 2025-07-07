@@ -53,24 +53,45 @@ async def main():
     output_dir = Path("output/stories")
     output_dir.mkdir(parents=True, exist_ok=True)
     
-    # Configure client
-    config = ClaudeConfig(
-        debug_mode=True,  # Show commands with session IDs
-        enable_prefix_prompt=True,
-    )
+    # Use custom config if available from command line
+    if hasattr(sys.modules['__main__'], 'custom_config'):
+        config = sys.modules['__main__'].custom_config
+    else:
+        # Default config
+        config = ClaudeConfig(
+            debug_mode=True,  # Show commands with session IDs
+            enable_prefix_prompt=True,
+        )
+    
+    # Get custom values from command line
+    num_stories = getattr(sys.modules['__main__'], 'num_stories', 5)
+    custom_timeout = getattr(sys.modules['__main__'], 'custom_timeout', 300.0)
     
     async with SessionAwareClient(config) as client:
-        # Step 1: Write 5 short stories
-        print("Step 1: Writing 5 short stories")
+        # Step 1: Write stories
+        print(f"Step 1: Writing {num_stories} short stories")
         print("-" * 60)
         
+        # Build story themes based on number requested
+        themes = [
+            "A sci-fi story about time travel",
+            "A fantasy story about a magical forest", 
+            "A mystery story about a missing painting",
+            "A romance story about coffee shop encounters",
+            "A horror story about an old mansion",
+            "An adventure story about treasure hunting",
+            "A comedy story about mistaken identity",
+            "A thriller story about a conspiracy",
+            "A historical fiction about ancient Rome",
+            "A dystopian story about future society"
+        ][:num_stories]
+        
+        # Build the prompt
+        story_list = "\n".join([f"{i+1}. {theme}" for i, theme in enumerate(themes)])
+        
         response1 = await client.query_with_session(
-            """Write 5 very short stories (each 100-150 words) on different themes and save them to output/stories/:
-            1. A sci-fi story about time travel
-            2. A fantasy story about a magical forest
-            3. A mystery story about a missing painting
-            4. A romance story about coffee shop encounters
-            5. A horror story about an old mansion
+            f"""Write {num_stories} very short stories (each 100-150 words) on different themes and save them to output/stories/:
+{story_list}
             
             For each story:
             - Give it a simple, basic title
@@ -80,7 +101,8 @@ async def main():
             After writing all stories, list them with format:
             1. [Title] - story1.txt
             2. [Title] - story2.txt
-            etc."""
+            etc.""",
+            timeout=custom_timeout  # Use custom timeout from command line
         )
         
         session_id = response1.session_id
@@ -233,16 +255,158 @@ async def test_auto_resume():
 
 
 if __name__ == "__main__":
-    # Clean up before starting
-    output_dir = Path("output/stories")
-    if output_dir.exists():
+    import argparse
+    
+    # Create argument parser
+    parser = argparse.ArgumentParser(
+        description="Claude SDK Session Resume Test - Write and improve short stories",
+        epilog="""
+Examples:
+  %(prog)s                     # Run full demo with all features
+  %(prog)s --stories 3         # Write only 3 stories
+  %(prog)s --timeout 600       # Use 10-minute timeout
+  %(prog)s --no-cleanup        # Keep existing stories
+  %(prog)s --skip-auto-resume  # Skip auto-resume demo
+  
+Environment Variables:
+  CLAUDE_API_KEY              # Your Claude API key
+  CLAUDE_MODEL                # Model to use (default: claude-3-5-sonnet-20241022)
+  CLAUDE_DEBUG                # Enable debug mode (true/false)
+  CLAUDE_PREFIX_PROMPT_FILE   # Path to prefix prompt file
+        """,
+        formatter_class=argparse.RawDescriptionHelpFormatter
+    )
+    
+    # Add arguments
+    parser.add_argument(
+        "--stories", "-s",
+        type=int,
+        default=5,
+        help="Number of stories to write (default: 5)"
+    )
+    
+    parser.add_argument(
+        "--timeout", "-t",
+        type=float,
+        default=300.0,
+        help="Timeout in seconds for story generation (default: 300)"
+    )
+    
+    parser.add_argument(
+        "--no-cleanup",
+        action="store_true",
+        help="Don't clean up existing stories before starting"
+    )
+    
+    parser.add_argument(
+        "--skip-auto-resume",
+        action="store_true",
+        help="Skip the auto-resume feature demo"
+    )
+    
+    parser.add_argument(
+        "--output-dir", "-o",
+        type=str,
+        default="output/stories",
+        help="Output directory for stories (default: output/stories)"
+    )
+    
+    parser.add_argument(
+        "--debug", "-d",
+        action="store_true",
+        help="Enable debug mode (shows commands and session IDs)"
+    )
+    
+    parser.add_argument(
+        "--no-prefix",
+        action="store_true",
+        help="Disable prefix prompt (faster but less capable)"
+    )
+    
+    parser.add_argument(
+        "--model", "-m",
+        type=str,
+        default=None,
+        help="Claude model to use (overrides environment variable)"
+    )
+    
+    parser.add_argument(
+        "--verbose", "-v",
+        action="store_true",
+        help="Enable verbose logging"
+    )
+    
+    # Parse arguments
+    args = parser.parse_args()
+    
+    # Update global variables based on arguments
+    output_dir = Path(args.output_dir)
+    
+    # Clean up before starting (unless --no-cleanup)
+    if not args.no_cleanup and output_dir.exists():
         import shutil
         shutil.rmtree(output_dir)
+        print(f"🧹 Cleaned up {output_dir}")
+    
+    # Create custom config based on arguments
+    from claude_sdk import ClaudeConfig
+    
+    config_args = {
+        "debug_mode": args.debug,
+        "enable_prefix_prompt": not args.no_prefix,
+        "verbose_logging": args.verbose,
+    }
+    
+    if args.model:
+        config_args["model"] = args.model
+    
+    # Override the global config
+    import sys
+    sys.modules['__main__'].custom_config = ClaudeConfig(**config_args)
+    sys.modules['__main__'].custom_timeout = args.timeout
+    sys.modules['__main__'].num_stories = args.stories
+    
+    print(f"🚀 Starting Claude SDK Session Test")
+    print(f"📝 Stories to write: {args.stories}")
+    print(f"⏱️  Timeout: {args.timeout}s")
+    print(f"📁 Output directory: {args.output_dir}")
+    print(f"🔧 Debug mode: {'ON' if args.debug else 'OFF'}")
+    print(f"📄 Prefix prompt: {'ENABLED' if not args.no_prefix else 'DISABLED'}")
+    if args.model:
+        print(f"🤖 Model: {args.model}")
+    print()
+    
+    # Modify main function to use arguments
+    original_main = main
+    
+    async def main_with_args():
+        # Temporarily modify the function to use our arguments
+        import builtins
+        original_path = Path
+        
+        # Monkey-patch to use custom output dir
+        class CustomPath(original_path):
+            def __new__(cls, *args, **kwargs):
+                if args and args[0] == "output/stories":
+                    return original_path.__new__(cls, args.output_dir)
+                return original_path.__new__(cls, *args, **kwargs)
+        
+        builtins.Path = CustomPath
+        
+        try:
+            # Run with custom config
+            await original_main()
+        finally:
+            # Restore original Path
+            builtins.Path = original_path
     
     # Run main test
-    asyncio.run(main())
+    asyncio.run(main_with_args())
     
-    # Run auto-resume test
-    asyncio.run(test_auto_resume())
+    # Run auto-resume test (unless skipped)
+    if not args.skip_auto_resume:
+        asyncio.run(test_auto_resume())
+    else:
+        print("\n📌 Skipped auto-resume demo")
     
-    print("\n\n✅ All tests complete! Check output/stories/ for results.")
+    print(f"\n\n✅ All tests complete! Check {args.output_dir}/ for results.")

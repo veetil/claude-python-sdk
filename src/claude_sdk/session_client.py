@@ -85,10 +85,14 @@ class SessionAwareClient(ClaudeClient):
         command_builder = CommandBuilder(config=self.config)
         command_builder.add_prompt(full_prompt)
         
-        # Force JSON output for session ID extraction
+        # Force stream-json output for session ID extraction
         if output_format == OutputFormat.TEXT:
-            output_format = OutputFormat.JSON
+            output_format = OutputFormat.STREAM_JSON
         command_builder.set_output_format(output_format.value)
+        
+        # Add verbose flag - required for stream-json format
+        if output_format == OutputFormat.STREAM_JSON or self.config.debug_mode or self.config.verbose_logging:
+            command_builder.add_flag("verbose")
         
         # Add resume session flag if provided
         if session_to_resume:
