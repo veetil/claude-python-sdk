@@ -271,6 +271,85 @@ class SessionAwareClient(ClaudeClient):
     def clear_session(self):
         """Clear the stored session ID"""
         self._last_session_id = None
+    
+    async def stream_query_with_session(
+        self,
+        prompt: str,
+        *,
+        resume_session_id: Optional[str] = None,
+        auto_resume_last: bool = False,
+        timeout: Optional[float] = None,
+        workspace_id: Optional[str] = None,
+        files: Optional[list[str]] = None,
+    ) -> AsyncIterator[str]:
+        """
+        Stream a query with session management and real-time output.
+        
+        Args:
+            prompt: The prompt to send to Claude
+            resume_session_id: Specific session ID to resume
+            auto_resume_last: If True, automatically resume last session
+            timeout: Timeout in seconds
+            workspace_id: Optional workspace to execute in
+            files: Optional list of files to include
+            
+        Yields:
+            String chunks of the response
+        """
+        # Determine which session to resume
+        session_to_resume = resume_session_id
+        if auto_resume_last and not session_to_resume:
+            session_to_resume = self._last_session_id
+        
+        # Apply prefix prompt if enabled
+        full_prompt = self.config.apply_prefix_prompt(prompt)
+        
+        # Build command
+        command_builder = CommandBuilder(config=self.config)
+        command_builder.add_prompt(full_prompt)
+        command_builder.set_output_format(OutputFormat.STREAM_JSON.value)
+        command_builder.add_flag("verbose")
+        
+        # Add resume session flag if provided
+        if session_to_resume:
+            command_builder.add_option("r", session_to_resume)
+            logger.info(f"Resuming session: {session_to_resume}")
+        
+        if files:
+            for file_path in files:
+                command_builder.add_file(file_path)
+        
+        command = command_builder.build()
+        
+        # Stream execution with session ID tracking
+        response_content = ""
+        extracted_session_id = None
+        
+        async for chunk in self._stream_command(
+            command,
+            timeout=timeout,
+            workspace_id=workspace_id,
+        ):
+            # Print chunk to console for real-time feedback
+            print(chunk.content, end='', flush=True)
+            
+            # Accumulate content for session ID extraction
+            response_content += chunk.content
+            
+            # Try to extract session ID from chunk if it looks like JSON
+            if chunk.content.strip().startswith('{') and chunk.content.strip().endswith('}'):
+                try:
+                    data = json.loads(chunk.content.strip())
+                    if "session_id" in data:
+                        extracted_session_id = data["session_id"]
+                except json.JSONDecodeError:
+                    pass
+            
+            yield chunk.content
+        
+        # Update last session ID if we got one
+        if extracted_session_id:
+            self._last_session_id = extracted_session_id
 
 
 # Convenience functions
